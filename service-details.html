@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Service Details | Abu Muhammad Azan</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .service-detail-hero {
+      height: 40vh;
+      background: linear-gradient(rgba(59, 26, 14, 0.9), rgba(59, 26, 14, 0.9)), url('images/hero_luxury_interior_1779297682059.png') center/cover;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: white;
+      margin-bottom: 50px;
+      padding-top: 80px;
+    }
+    
+    .service-detail-hero h1 {
+      font-size: 3rem;
+      color: var(--accent-color);
+    }
+    
+    .service-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 50px;
+      margin-bottom: 80px;
+      align-items: center;
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    }
+    
+    .service-row:nth-child(even) {
+      direction: rtl;
+    }
+    
+    .service-row:nth-child(even) .service-content {
+      direction: ltr;
+    }
+    
+    .service-row img {
+      border-radius: 10px;
+      width: 100%;
+      height: 350px;
+      object-fit: cover;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    
+    .service-content h2 {
+      color: var(--primary-color);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .service-content h2 i {
+      color: var(--accent-color);
+      margin-right: 15px;
+      font-size: 2rem;
+    }
+    
+    .service-content p {
+      font-size: 1.1rem;
+      color: #555;
+      margin-bottom: 20px;
+    }
+    
+    .service-features li {
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      color: #444;
+      font-size: 0.95rem;
+    }
+    
+    .service-features li i {
+      color: var(--accent-color);
+      margin-right: 10px;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 768px) {
+      .service-row { grid-template-columns: 1fr; direction: ltr !important; }
+      .service-row img { height: 250px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP TICKER MARQUEE -->
+  <div class="top-ticker" id="top-ticker">
+    <div class="ticker-wrapper">
+      <div class="ticker-content">
+        <span>Office Glass Partition &bull; Gypsum Work &bull; Interior Decoration &bull; Electrical Work &bull; Plumbing &bull; All Over Oman &bull; Premium Quality &bull; Free Consultation &bull; Call Now &bull; </span>
+        <span>Office Glass Partition &bull; Gypsum Work &bull; Interior Decoration &bull; Electrical Work &bull; Plumbing &bull; All Over Oman &bull; Premium Quality &bull; Free Consultation &bull; Call Now &bull; </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- HEADER / NAVIGATION -->
+  <header id="header">
+    <div class="container navbar">
+      <div class="logo">
+        <a href="index.html">Abu Muhammad <span>Azan</span></a>
+      </div>
+      
+      <div class="hamburger" id="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+
+      <nav class="nav-menu" id="nav-menu">
+        <ul class="nav-links">
+          <li><a href="index.html#home">Home</a></li>
+          <li><a href="index.html#about">About Us</a></li>
+          <li><a href="index.html#portfolio">Gallery</a></li>
+          <li><a href="index.html#services" class="active">Services</a></li>
+          <li><a href="index.html#contact">Contact</a></li>
+          <li class="search-container">
+            <input type="text" class="search-input" id="search-input" placeholder="Search...">
+            <div class="search-results-container" id="search-results"></div>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MAIN SEARCH CONTENT MAP -->
+  <div id="content-map" style="display: none;">
+    <div data-title="Office Glass Partition" data-link="index.html#services">Modern office glass partitions with premium quality materials. Located in Muscat, Oman.</div>
+    <div data-title="Gypsum Partition" data-link="index.html#services">Beautiful and elegant gypsum work for offices and villas.</div>
+    <div data-title="Interior Decoration" data-link="index.html#services">Complete interior decoration to make spaces beautiful.</div>
+    <div data-title="Electrical Work" data-link="index.html#services">Professional electrical work for offices and buildings.</div>
+    <div data-title="Plumbing Work" data-link="index.html#services">Complete plumbing solutions for offices and villas.</div>
+    <div data-title="All Type Decoration" data-link="index.html#services">All types of decoration work for any space.</div>
+    <div data-title="About Us" data-link="index.html#about">Quality First, Customer Satisfaction, Professional Team, All Over Oman, Best Prices.</div>
+    <div data-title="Our Vision" data-link="index.html#vision">Future Goals - To become most trusted and leading company for aluminium, glass and interior decoration in all over Oman.</div>
+    <div data-title="Contact Us" data-link="index.html#contact">Location: Muscat, Oman. WhatsApp: +968 9290 3653. Hours: 8 AM – 10 PM.</div>
+    <div data-title="Why Choose Abu Muhammad Azan" data-link="index.html#facilities">Quality Work, Expert Team, All Over Oman, Best Prices, On Time Delivery, Free Consultation.</div>
+  </div>
+
+  <div class="service-detail-hero">
+    <div class="container">
+      <h1>Our Detailed Services</h1>
+      <p>Premium solutions for your spaces all over Oman.</p>
+    </div>
+  </div>
+
+  <section class="container" style="padding-top: 0;">
+    <!-- Service 1 -->
+    <div class="service-row">
+      <img src="images/glass_partition_1779297695586.png" alt="Office Glass Partition">
+      <div class="service-content">
+        <h2><i class="fa-solid fa-border-all"></i> 01. Office Glass Partition</h2>
+        <p>We provide modern, sleek, and soundproof glass partitions for corporate offices, meeting rooms, and commercial spaces. Our glass partitions maximize natural light while ensuring privacy and a premium aesthetic.</p>
+        <ul class="service-features">
+          <li><i class="fa-solid fa-check-circle"></i> Frameless & framed options</li>
+          <li><i class="fa-solid fa-check-circle"></i> Tempered & frosted glass</li>
+          <li><i class="fa-solid fa-check-circle"></i> Sound insulation</li>
+          <li><i class="fa-solid fa-check-circle"></i> Premium hardware fittings</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Service 2 -->
+    <div class="service-row">
+      <img src="images/gypsum_ceiling_1779297767775.png" alt="Gypsum Partition">
+      <div class="service-content">
+        <h2><i class="fa-solid fa-cubes"></i> 02. Gypsum Partition & Ceiling</h2>
+        <p>Transform your interiors with our beautiful and elegant gypsum work. We design and install custom gypsum partitions, false ceilings, and wall designs that add a touch of luxury to offices and villas.</p>
+        <ul class="service-features">
+          <li><i class="fa-solid fa-check-circle"></i> Custom ceiling designs with hidden lighting</li>
+          <li><i class="fa-solid fa-check-circle"></i> Space-dividing gypsum partitions</li>
+          <li><i class="fa-solid fa-check-circle"></i> Moisture & fire-resistant materials</li>
+          <li><i class="fa-solid fa-check-circle"></i> Smooth, paint-ready finish</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Service 3 -->
+    <div class="service-row">
+      <img src="images/interior_decoration_1779298193703.png" alt="Interior Decoration">
+      <div class="service-content">
+        <h2><i class="fa-solid fa-couch"></i> 03. Interior Decoration</h2>
+        <p>Our comprehensive interior decoration services turn ordinary rooms into extraordinary spaces. We handle everything from color schemes and flooring to custom furniture selection to match your luxury taste.</p>
+        <ul class="service-features">
+          <li><i class="fa-solid fa-check-circle"></i> Complete space planning</li>
+          <li><i class="fa-solid fa-check-circle"></i> Premium material selection</li>
+          <li><i class="fa-solid fa-check-circle"></i> Custom joinery and woodwork</li>
+          <li><i class="fa-solid fa-check-circle"></i> 3D visualization before execution</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Service 4 -->
+    <div class="service-row">
+      <img src="images/electrical_plumbing_1779297928053.png" alt="Electrical Work">
+      <div class="service-content">
+        <h2><i class="fa-solid fa-bolt"></i> 04. Electrical Work</h2>
+        <p>Safety and reliability are our priorities. We offer professional electrical wiring, lighting design, and power distribution installations for commercial buildings and luxury residences.</p>
+        <ul class="service-features">
+          <li><i class="fa-solid fa-check-circle"></i> Complete wiring & rewiring</li>
+          <li><i class="fa-solid fa-check-circle"></i> Architectural lighting installation</li>
+          <li><i class="fa-solid fa-check-circle"></i> Smart home & office integration</li>
+          <li><i class="fa-solid fa-check-circle"></i> Maintenance & troubleshooting</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Service 5 -->
+    <div class="service-row">
+      <img src="images/electrical_plumbing_1779297928053.png" alt="Plumbing Work">
+      <div class="service-content">
+        <h2><i class="fa-solid fa-faucet-drip"></i> 05. Plumbing Work</h2>
+        <p>We deliver complete plumbing solutions ensuring leak-free, high-pressure water systems. Our team handles everything from modern bathroom fittings to complete piping systems for buildings.</p>
+        <ul class="service-features">
+          <li><i class="fa-solid fa-check-circle"></i> Luxury bathroom installations</li>
+          <li><i class="fa-solid fa-check-circle"></i> Pipe routing and fitting</li>
+          <li><i class="fa-solid fa-check-circle"></i> Drainage systems</li>
+          <li><i class="fa-solid fa-check-circle"></i> Water heater & pump installations</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Service 6 -->
+    <div class="service-row">
+      <img src="images/hero_luxury_interior_1779297682059.png" alt="All Type Decoration">
+      <div class="service-content">
+        <h2><i class="fa-solid fa-paint-roller"></i> 06. All Type Decoration Work</h2>
+        <p>No matter the size or type of space, we provide versatile decoration services including painting, wallpaper installation, flooring, and exterior facelifts to give your property a premium look.</p>
+        <ul class="service-features">
+          <li><i class="fa-solid fa-check-circle"></i> Premium painting services</li>
+          <li><i class="fa-solid fa-check-circle"></i> Luxury wallpapers & wall textures</li>
+          <li><i class="fa-solid fa-check-circle"></i> Flooring (Parquet, Marble, Tiles)</li>
+          <li><i class="fa-solid fa-check-circle"></i> Turnkey decoration solutions</li>
+        </ul>
+      </div>
+    </div>
+    
+    <div style="text-align: center; margin-top: 40px;">
+      <a href="index.html#contact" class="btn btn-primary" style="font-size: 1.2rem; padding: 15px 40px;">Get a Quote Today</a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <p>&copy; 2026 Abu Muhammad Azan. All Rights Reserved.</p>
+      <p style="font-size: 0.9rem; margin-top: 10px;">Your Trusted Partner in Oman.</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
