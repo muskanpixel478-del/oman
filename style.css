@@ -443,14 +443,14 @@ header.scrolled {
   text-decoration: none;
 }
 
-.logo-img {
-  height: clamp(44px, 5vw, 58px);
+.logo-svg {
+  height: clamp(38px, 4.5vw, 48px);
   width: auto;
   display: block;
   transition: opacity 0.3s ease;
 }
 
-.logo-img:hover {
+.logo-svg:hover {
   opacity: 0.85;
 }
 
