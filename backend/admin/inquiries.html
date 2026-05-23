@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inquiries — AMA Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="assets/admin.css">
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">ABU MUHAMMAD AZAN<span>ADMIN PANEL</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+      <a href="gallery.html"><i class="fa-solid fa-images"></i> Gallery</a>
+      <a href="inquiries.html" class="active"><i class="fa-solid fa-envelope"></i> Inquiries</a>
+      <a href="content.html"><i class="fa-solid fa-pen-to-square"></i> Edit Content</a>
+      <a href="settings.html"><i class="fa-solid fa-gear"></i> Settings</a>
+    </nav>
+    <div class="sidebar-footer">© 2026 Abu Muhammad Azan</div>
+  </aside>
+
+  <div class="main-content">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="sidebar-toggle" id="sidebarToggle"><i class="fa-solid fa-bars"></i></button>
+        <span class="topbar-title">Inquiries</span>
+      </div>
+      <div class="topbar-right">
+        <a href="/api/inquiries/export/excel" class="btn btn-secondary btn-sm"><i class="fa-solid fa-file-excel"></i> Export Excel</a>
+        <span class="topbar-user"><i class="fa-solid fa-user-shield" style="color:var(--gold)"></i> <span id="adminUsername">admin</span></span>
+        <button class="btn-logout" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="card">
+        <div class="card-header"><span class="card-title">All Inquiries</span></div>
+
+        <!-- Filters -->
+        <div class="search-bar">
+          <div>
+            <label class="form-label">Search</label>
+            <input type="text" class="form-control" id="searchInput" placeholder="Name or phone..." oninput="filterTable()">
+          </div>
+          <div>
+            <label class="form-label">Status</label>
+            <select class="form-control" id="filterStatus" onchange="filterTable()">
+              <option value="">All</option>
+              <option value="new">New</option>
+              <option value="in_progress">In Progress</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Service</label>
+            <select class="form-control" id="filterService" onchange="filterTable()">
+              <option value="">All Services</option>
+              <option>Glass Partition</option>
+              <option>Gypsum Partition</option>
+              <option>Interior Decoration</option>
+              <option>Electrical Work</option>
+              <option>Plumbing Work</option>
+              <option>Multiple Services</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">City</label>
+            <select class="form-control" id="filterCity" onchange="filterTable()">
+              <option value="">All Cities</option>
+              <option>Muscat</option><option>Salalah</option><option>Sohar</option>
+              <option>Nizwa</option><option>Sur</option><option>Ibri</option><option>Other</option>
+            </select>
+          </div>
+          <button class="btn btn-secondary" onclick="clearFilters()"><i class="fa-solid fa-rotate"></i> Reset</button>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Name</th><th>Phone</th><th>Service</th><th>City</th><th>Date</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="inqBody">
+              <tr><td colspan="7" style="text-align:center;padding:24px;color:#999">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal" style="max-width:620px">
+    <div class="modal-header">
+      <span class="modal-title">Inquiry Details</span>
+      <button class="modal-close" onclick="closeModal('detailModal')">&times;</button>
+    </div>
+    <div id="detailContent"></div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="assets/admin.js"></script>
+<script>
+  let allInquiries = [];
+
+  (async () => {
+    if (!await requireAuth()) return;
+    await loadInquiries();
+    const urlId = new URLSearchParams(location.search).get('id');
+    if (urlId) setTimeout(() => openDetail(urlId), 600);
+  })();
+
+  async function loadInquiries() {
+    const data = await apiFetch('/inquiries');
+    if (!data?.success) return;
+    allInquiries = data.inquiries;
+    renderTable(allInquiries);
+  }
+
+  function renderTable(list) {
+    const tbody = document.getElementById('inqBody');
+    if (!list.length) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:#999"><i class="fa-solid fa-inbox" style="font-size:2rem;opacity:0.3;display:block;margin-bottom:8px"></i>No inquiries found</td></tr>';
+      return;
+    }
+    tbody.innerHTML = list.map(i => `
+      <tr>
+        <td><strong>${i.fullName}</strong></td>
+        <td><a href="tel:${i.phone}" style="color:var(--gold)">${i.phone}</a></td>
+        <td>${i.service || '—'}</td>
+        <td>${i.city || '—'}</td>
+        <td style="white-space:nowrap">${formatDate(i.createdAt)}</td>
+        <td>${statusBadge(i.status)}</td>
+        <td>
+          <button class="btn btn-primary btn-sm" onclick="openDetail('${i._id}')"><i class="fa-solid fa-eye"></i></button>
+          <a href="https://wa.me/${(i.whatsapp||i.phone).replace(/\D/g,'')}" target="_blank" class="btn btn-success btn-sm"><i class="fa-brands fa-whatsapp"></i></a>
+        </td>
+      </tr>`).join('');
+  }
+
+  function filterTable() {
+    const q       = document.getElementById('searchInput').value.toLowerCase();
+    const status  = document.getElementById('filterStatus').value;
+    const service = document.getElementById('filterService').value;
+    const city    = document.getElementById('filterCity').value;
+    const filtered = allInquiries.filter(i =>
+      (!q || i.fullName.toLowerCase().includes(q) || i.phone.includes(q)) &&
+      (!status  || i.status  === status) &&
+      (!service || i.service === service) &&
+      (!city    || i.city    === city)
+    );
+    renderTable(filtered);
+  }
+
+  function clearFilters() {
+    ['searchInput','filterStatus','filterService','filterCity'].forEach(id => document.getElementById(id).value = '');
+    renderTable(allInquiries);
+  }
+
+  function openDetail(id) {
+    const i = allInquiries.find(x => x._id === id);
+    if (!i) return;
+    const waNum = (i.whatsapp || i.phone).replace(/\D/g, '');
+    document.getElementById('detailContent').innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+        <div><div style="font-size:0.75rem;color:#999;font-weight:600;text-transform:uppercase">Name</div><div style="font-weight:700">${i.fullName}</div></div>
+        <div><div style="font-size:0.75rem;color:#999;font-weight:600;text-transform:uppercase">Phone</div><div>${i.phone}</div></div>
+        <div><div style="font-size:0.75rem;color:#999;font-weight:600;text-transform:uppercase">WhatsApp</div><div>${i.whatsapp || '—'}</div></div>
+        <div><div style="font-size:0.75rem;color:#999;font-weight:600;text-transform:uppercase">Email</div><div>${i.email || '—'}</div></div>
+        <div><div style="font-size:0.75rem;color:#999;font-weight:600;text-transform:uppercase">City</div><div>${i.city || '—'}</div></div>
+        <div><div style="font-size:0.75rem;color:#999;font-weight:600;text-transform:uppercase">Service</div><div>${i.service || '—'}</div></div>
+        <div><div style="font-size:0.75rem;color:#999;font-weight:600;text-transform:uppercase">Source</div><div>${i.source || '—'}</div></div>
+        <div><div style="font-size:0.75rem;color:#999;font-weight:600;text-transform:uppercase">Date</div><div>${formatDate(i.createdAt)}</div></div>
+      </div>
+      <div style="margin-bottom:12px"><div style="font-size:0.75rem;color:#999;font-weight:600;text-transform:uppercase;margin-bottom:4px">Description</div>
+        <div style="background:#f9f7f3;padding:12px;border-radius:8px;font-size:0.88rem">${i.description || 'No description provided'}</div></div>
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select class="form-control" id="detailStatus">
+          ${['new','in_progress','completed','cancelled'].map(s=>`<option value="${s}" ${i.status===s?'selected':''}>${s.replace('_',' ').replace(/\b\w/g,c=>c.toUpperCase())}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Private Notes</label>
+        <textarea class="form-control" id="detailNotes" rows="3" placeholder="Add private notes...">${i.notes || ''}</textarea>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <button class="btn btn-primary" onclick="saveDetail('${i._id}')"><i class="fa-solid fa-save"></i> Save</button>
+        <a href="https://wa.me/${waNum}" target="_blank" class="btn btn-success"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
+        <button class="btn btn-secondary" onclick="closeModal('detailModal')">Close</button>
+      </div>`;
+    openModal('detailModal');
+  }
+
+  async function saveDetail(id) {
+    const data = await apiFetch('/inquiries/' + id, {
+      method: 'PUT',
+      body: JSON.stringify({ status: document.getElementById('detailStatus').value, notes: document.getElementById('detailNotes').value })
+    });
+    if (data?.success) {
+      showToast('Inquiry updated', 'success');
+      closeModal('detailModal');
+      await loadInquiries();
+    } else showToast(data?.message || 'Update failed', 'error');
+  }
+</script>
+</body>
+</html>

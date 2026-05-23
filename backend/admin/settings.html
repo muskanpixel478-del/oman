@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings — AMA Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="assets/admin.css">
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">ABU MUHAMMAD AZAN<span>ADMIN PANEL</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+      <a href="gallery.html"><i class="fa-solid fa-images"></i> Gallery</a>
+      <a href="inquiries.html"><i class="fa-solid fa-envelope"></i> Inquiries</a>
+      <a href="content.html"><i class="fa-solid fa-pen-to-square"></i> Edit Content</a>
+      <a href="settings.html" class="active"><i class="fa-solid fa-gear"></i> Settings</a>
+    </nav>
+    <div class="sidebar-footer">© 2026 Abu Muhammad Azan</div>
+  </aside>
+  <div class="main-content">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="sidebar-toggle" id="sidebarToggle"><i class="fa-solid fa-bars"></i></button>
+        <span class="topbar-title">Settings</span>
+      </div>
+      <div class="topbar-right">
+        <span class="topbar-user"><i class="fa-solid fa-user-shield" style="color:var(--gold)"></i> <span id="adminUsername">admin</span></span>
+        <button class="btn-logout" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+      </div>
+    </div>
+    <div class="page-content">
+      <div class="card" style="max-width:480px">
+        <div class="card-header"><span class="card-title"><i class="fa-solid fa-lock" style="color:var(--gold)"></i> Change Password</span></div>
+        <div id="pwMsg" style="display:none;padding:10px 14px;border-radius:8px;margin-bottom:16px;font-size:0.85rem"></div>
+        <div class="form-group">
+          <label class="form-label">Current Password</label>
+          <input type="password" class="form-control" id="currentPw" placeholder="Enter current password">
+        </div>
+        <div class="form-group">
+          <label class="form-label">New Password</label>
+          <input type="password" class="form-control" id="newPw" placeholder="Min. 8 characters">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm New Password</label>
+          <input type="password" class="form-control" id="confirmPw" placeholder="Repeat new password">
+        </div>
+        <button class="btn btn-primary" onclick="changePassword()"><i class="fa-solid fa-key"></i> Change Password</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast-container" id="toastContainer"></div>
+<script src="assets/admin.js"></script>
+<script>
+  (async () => { if (!await requireAuth()) return; })();
+
+  async function changePassword() {
+    const cur  = document.getElementById('currentPw').value;
+    const nw   = document.getElementById('newPw').value;
+    const conf = document.getElementById('confirmPw').value;
+    const msg  = document.getElementById('pwMsg');
+    if (nw !== conf) { msg.style.display='block'; msg.style.background='#fee2e2'; msg.style.color='#b91c1c'; msg.textContent='Passwords do not match'; return; }
+    const data = await apiFetch('/auth/change-password', { method:'POST', body: JSON.stringify({ currentPassword: cur, newPassword: nw }) });
+    msg.style.display = 'block';
+    if (data?.success) { msg.style.background='#d1fae5'; msg.style.color='#065f46'; msg.textContent='Password changed! Please log in again.'; setTimeout(logout, 2000); }
+    else { msg.style.background='#fee2e2'; msg.style.color='#b91c1c'; msg.textContent = data?.message || 'Failed'; }
+  }
+</script>
+</body>
+</html>

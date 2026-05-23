@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — AMA Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="assets/admin.css">
+</head>
+<body>
+<div class="admin-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">ABU MUHAMMAD AZAN<span>ADMIN PANEL</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="active"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+      <a href="gallery.html"><i class="fa-solid fa-images"></i> Gallery</a>
+      <a href="inquiries.html"><i class="fa-solid fa-envelope"></i> Inquiries</a>
+      <a href="content.html"><i class="fa-solid fa-pen-to-square"></i> Edit Content</a>
+      <a href="settings.html"><i class="fa-solid fa-gear"></i> Settings</a>
+    </nav>
+    <div class="sidebar-footer">© 2026 Abu Muhammad Azan</div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main-content">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="sidebar-toggle" id="sidebarToggle"><i class="fa-solid fa-bars"></i></button>
+        <span class="topbar-title">Dashboard</span>
+      </div>
+      <div class="topbar-right">
+        <span class="topbar-user"><i class="fa-solid fa-user-shield" style="color:var(--gold)"></i> <span id="adminUsername">admin</span></span>
+        <button class="btn-logout" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fa-solid fa-envelope-open-text"></i></div>
+          <div>
+            <div class="stat-value" id="todayInquiries">—</div>
+            <div class="stat-label">Today's Inquiries</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fa-solid fa-calendar-days"></i></div>
+          <div>
+            <div class="stat-value" id="monthInquiries">—</div>
+            <div class="stat-label">This Month</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fa-solid fa-images"></i></div>
+          <div>
+            <div class="stat-value" id="galleryCount">—</div>
+            <div class="stat-label">Gallery Images</div>
+          </div>
+        </div>
+        <div class="stat-card" style="border-left-color:#2ECC71">
+          <div class="stat-icon" style="background:rgba(46,204,113,0.1)"><i class="fa-solid fa-circle-check" style="color:#2ECC71"></i></div>
+          <div>
+            <div class="stat-value" id="completedCount">—</div>
+            <div class="stat-label">Completed Jobs</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="card">
+        <div class="card-header"><span class="card-title">Quick Actions</span></div>
+        <div class="quick-actions">
+          <a href="gallery.html?action=upload" class="quick-action">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            <span>Add New Photo</span>
+          </a>
+          <a href="inquiries.html" class="quick-action">
+            <i class="fa-solid fa-inbox"></i>
+            <span>View Messages</span>
+          </a>
+          <a href="content.html#services" class="quick-action">
+            <i class="fa-solid fa-screwdriver-wrench"></i>
+            <span>Edit Services</span>
+          </a>
+          <a href="content.html#contact" class="quick-action">
+            <i class="fa-solid fa-phone-flip"></i>
+            <span>Edit Contact</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Recent Inquiries -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Recent Inquiries</span>
+          <a href="inquiries.html" class="btn btn-secondary btn-sm">View All</a>
+        </div>
+        <div class="table-wrapper">
+          <table id="recentTable">
+            <thead>
+              <tr>
+                <th>Name</th><th>Phone</th><th>Service</th><th>City</th><th>Date</th><th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="recentBody">
+              <tr><td colspan="6" style="text-align:center;padding:24px;color:#999">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="assets/admin.js"></script>
+<script>
+  (async () => {
+    if (!await requireAuth()) return;
+
+    // Load inquiry stats
+    const inqData = await apiFetch('/inquiries');
+    if (inqData?.success) {
+      document.getElementById('todayInquiries').textContent  = inqData.todayCount ?? 0;
+      document.getElementById('monthInquiries').textContent  = inqData.monthCount ?? 0;
+      const completed = inqData.inquiries.filter(i => i.status === 'completed').length;
+      document.getElementById('completedCount').textContent  = completed;
+
+      // Recent 5 inquiries
+      const tbody = document.getElementById('recentBody');
+      const recent = inqData.inquiries.slice(0, 8);
+      if (!recent.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:#999">No inquiries yet</td></tr>';
+      } else {
+        tbody.innerHTML = recent.map(i => `
+          <tr style="cursor:pointer" onclick="window.location='inquiries.html?id=${i._id}'">
+            <td><strong>${i.fullName}</strong></td>
+            <td>${i.phone}</td>
+            <td>${i.service || '—'}</td>
+            <td>${i.city || '—'}</td>
+            <td>${formatDate(i.createdAt)}</td>
+            <td>${statusBadge(i.status)}</td>
+          </tr>`).join('');
+      }
+    }
+
+    // Load gallery count
+    const galData = await apiFetch('/gallery');
+    if (galData?.success) {
+      document.getElementById('galleryCount').textContent = galData.images.length;
+    }
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gallery — AMA Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="assets/admin.css">
+  <style>
+    .cat-filter { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px; }
+    .cat-btn {
+      padding:6px 14px; border-radius:20px; border:1px solid #ddd;
+      font-size:0.78rem; font-weight:600; cursor:pointer; background:#fff;
+      transition:all 0.2s; color:var(--text-mid);
+    }
+    .cat-btn.active { background:var(--gold); color:var(--sidebar-bg); border-color:var(--gold); }
+    .bulk-bar {
+      display:none; align-items:center; gap:12px; padding:12px 16px;
+      background:#fff3cd; border-radius:8px; margin-bottom:16px; border:1px solid #ffc107;
+    }
+    .bulk-bar.show { display:flex; }
+    .upload-list { margin-top:16px; display:flex; flex-direction:column; gap:8px; }
+    .upload-file-row { display:flex; align-items:center; gap:12px; padding:8px 12px; background:#f9f9f9; border-radius:8px; }
+    .upload-file-name { flex:1; font-size:0.83rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .upload-file-size { font-size:0.75rem; color:#999; }
+    .gallery-item.selected { outline:3px solid var(--gold); }
+    .edit-overlay {
+      position:absolute; inset:0; background:rgba(28,15,6,0.6);
+      display:flex; align-items:center; justify-content:center; gap:8px;
+      opacity:0; transition:0.2s;
+    }
+    .gallery-item:hover .edit-overlay { opacity:1; }
+  </style>
+</head>
+<body>
+<div class="admin-layout">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">ABU MUHAMMAD AZAN<span>ADMIN PANEL</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+      <a href="gallery.html" class="active"><i class="fa-solid fa-images"></i> Gallery</a>
+      <a href="inquiries.html"><i class="fa-solid fa-envelope"></i> Inquiries</a>
+      <a href="content.html"><i class="fa-solid fa-pen-to-square"></i> Edit Content</a>
+      <a href="settings.html"><i class="fa-solid fa-gear"></i> Settings</a>
+    </nav>
+    <div class="sidebar-footer">© 2026 Abu Muhammad Azan</div>
+  </aside>
+
+  <div class="main-content">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="sidebar-toggle" id="sidebarToggle"><i class="fa-solid fa-bars"></i></button>
+        <span class="topbar-title">Gallery Management</span>
+      </div>
+      <div class="topbar-right">
+        <span class="topbar-user"><i class="fa-solid fa-user-shield" style="color:var(--gold)"></i> <span id="adminUsername">admin</span></span>
+        <button class="btn-logout" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- Upload Card -->
+      <div class="card" id="uploadCard">
+        <div class="card-header">
+          <span class="card-title"><i class="fa-solid fa-cloud-arrow-up" style="color:var(--gold)"></i> Upload Photos</span>
+          <button class="btn btn-secondary btn-sm" onclick="document.getElementById('uploadCard').style.display='none'">Minimize</button>
+        </div>
+        <div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+          <div class="upload-icon"><i class="fa-solid fa-images"></i></div>
+          <div class="upload-text">Drag & drop photos here or click to browse</div>
+          <div class="upload-subtext">JPG, PNG, WEBP · Max 5MB per file · Multiple files supported</div>
+        </div>
+        <input type="file" id="fileInput" multiple accept="image/jpeg,image/png,image/webp" style="display:none">
+
+        <div id="uploadFileList" class="upload-list"></div>
+
+        <div id="uploadForm" style="display:none;margin-top:16px">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Category</label>
+              <select class="form-control" id="uploadCategory">
+                <option value="General">General</option>
+                <option value="Glass Partition">Glass Partition</option>
+                <option value="Gypsum Partition">Gypsum Partition</option>
+                <option value="Interior Decoration">Interior Decoration</option>
+                <option value="Electrical Work">Electrical Work</option>
+                <option value="Plumbing Work">Plumbing Work</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Caption (optional)</label>
+              <input type="text" class="form-control" id="uploadCaption" placeholder="e.g. Office glass partition project">
+            </div>
+          </div>
+          <div id="uploadProgress" style="display:none">
+            <div style="font-size:0.82rem;margin-bottom:6px;color:var(--text-mid)">Uploading... <span id="uploadPct">0%</span></div>
+            <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:12px">
+            <button class="btn btn-primary" id="uploadBtn" onclick="uploadFiles()">
+              <i class="fa-solid fa-cloud-arrow-up"></i> Upload Now
+            </button>
+            <button class="btn btn-secondary" onclick="clearUpload()">Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gallery Card -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title"><i class="fa-solid fa-grip" style="color:var(--gold)"></i> Photo Library</span>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-secondary btn-sm" onclick="selectAll()"><i class="fa-solid fa-check-double"></i> Select All</button>
+            <button class="btn btn-danger btn-sm" id="bulkDeleteBtn" style="display:none" onclick="bulkDelete()"><i class="fa-solid fa-trash"></i> Delete Selected</button>
+          </div>
+        </div>
+
+        <!-- Category filter -->
+        <div class="cat-filter" id="catFilter">
+          <button class="cat-btn active" data-cat="all">All</button>
+          <button class="cat-btn" data-cat="Glass Partition">Glass Partition</button>
+          <button class="cat-btn" data-cat="Gypsum Partition">Gypsum Partition</button>
+          <button class="cat-btn" data-cat="Interior Decoration">Interior Decoration</button>
+          <button class="cat-btn" data-cat="Electrical Work">Electrical Work</button>
+          <button class="cat-btn" data-cat="Plumbing Work">Plumbing Work</button>
+          <button class="cat-btn" data-cat="General">General</button>
+        </div>
+
+        <div id="galleryGrid" class="gallery-grid">
+          <div class="empty-state"><i class="fa-solid fa-images"></i><p>Loading gallery...</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Edit Photo</span>
+      <button class="modal-close" onclick="closeModal('editModal')">&times;</button>
+    </div>
+    <img id="editPreview" src="" alt="" style="width:100%;height:180px;object-fit:cover;border-radius:8px;margin-bottom:16px">
+    <div class="form-group">
+      <label class="form-label">Caption</label>
+      <input type="text" class="form-control" id="editCaption" placeholder="Add caption">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Category</label>
+      <select class="form-control" id="editCategory">
+        <option value="General">General</option>
+        <option value="Glass Partition">Glass Partition</option>
+        <option value="Gypsum Partition">Gypsum Partition</option>
+        <option value="Interior Decoration">Interior Decoration</option>
+        <option value="Electrical Work">Electrical Work</option>
+        <option value="Plumbing Work">Plumbing Work</option>
+      </select>
+    </div>
+    <input type="hidden" id="editId">
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <button class="btn btn-primary" onclick="saveEdit()"><i class="fa-solid fa-save"></i> Save</button>
+      <button class="btn btn-secondary" onclick="closeModal('editModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="assets/admin.js"></script>
+<script>
+  let allImages = [], selectedIds = new Set(), currentCat = 'all';
+
+  (async () => {
+    if (!await requireAuth()) return;
+    if (new URLSearchParams(location.search).get('action') === 'upload') {
+      document.getElementById('uploadCard').scrollIntoView({ behavior: 'smooth' });
+    }
+    await loadGallery();
+    initDragDrop();
+    initCatFilter();
+  })();
+
+  async function loadGallery() {
+    const data = await apiFetch('/gallery');
+    if (!data?.success) return;
+    allImages = data.images;
+    renderGallery(allImages);
+  }
+
+  function renderGallery(images) {
+    const grid = document.getElementById('galleryGrid');
+    const filtered = currentCat === 'all' ? images : images.filter(i => i.category === currentCat);
+    if (!filtered.length) {
+      grid.innerHTML = '<div class="empty-state"><i class="fa-solid fa-images"></i><p>No photos in this category</p></div>';
+      return;
+    }
+    grid.innerHTML = filtered.map(img => `
+      <div class="gallery-item" id="item-${img._id}">
+        <input type="checkbox" class="gallery-select" onchange="toggleSelect('${img._id}', this.checked)" ${selectedIds.has(img._id)?'checked':''}>
+        <img src="${img.thumbnail || img.url}" alt="${img.caption}" loading="lazy" onerror="this.src='${img.url}'">
+        <div class="edit-overlay">
+          <button class="btn btn-primary btn-sm" onclick="openEdit('${img._id}')"><i class="fa-solid fa-pen"></i></button>
+          <button class="btn btn-danger btn-sm" onclick="deleteOne('${img._id}')"><i class="fa-solid fa-trash"></i></button>
+        </div>
+        <div class="gallery-item-info">
+          <div class="gallery-item-caption">${img.caption || 'No caption'}</div>
+          <div class="gallery-item-category">${img.category}</div>
+        </div>
+      </div>`).join('');
+  }
+
+  function initCatFilter() {
+    document.querySelectorAll('.cat-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentCat = btn.dataset.cat;
+        selectedIds.clear();
+        updateBulkBar();
+        renderGallery(allImages);
+      });
+    });
+  }
+
+  function toggleSelect(id, checked) {
+    checked ? selectedIds.add(id) : selectedIds.delete(id);
+    const item = document.getElementById('item-' + id);
+    if (item) item.classList.toggle('selected', checked);
+    updateBulkBar();
+  }
+
+  function selectAll() {
+    const visible = currentCat === 'all' ? allImages : allImages.filter(i => i.category === currentCat);
+    visible.forEach(img => { selectedIds.add(img._id); const el = document.getElementById('item-' + img._id); if(el){el.classList.add('selected'); const cb=el.querySelector('.gallery-select'); if(cb)cb.checked=true;} });
+    updateBulkBar();
+  }
+
+  function updateBulkBar() {
+    const btn = document.getElementById('bulkDeleteBtn');
+    btn.style.display = selectedIds.size ? 'flex' : 'none';
+    btn.textContent = `Delete (${selectedIds.size}) Selected`;
+  }
+
+  async function deleteOne(id) {
+    if (!confirm('Delete this photo permanently?')) return;
+    const data = await apiFetch('/gallery/' + id, { method: 'DELETE' });
+    if (data?.success) { showToast('Photo deleted', 'success'); allImages = allImages.filter(i => i._id !== id); renderGallery(allImages); }
+    else showToast(data?.message || 'Delete failed', 'error');
+  }
+
+  async function bulkDelete() {
+    if (!confirm(`Delete ${selectedIds.size} photo(s) permanently?`)) return;
+    const data = await apiFetch('/gallery/bulk/delete', { method:'POST', body: JSON.stringify({ ids: [...selectedIds] }) });
+    if (data?.success) { showToast(data.message, 'success'); await loadGallery(); selectedIds.clear(); updateBulkBar(); }
+    else showToast(data?.message || 'Delete failed', 'error');
+  }
+
+  function openEdit(id) {
+    const img = allImages.find(i => i._id === id);
+    if (!img) return;
+    document.getElementById('editId').value      = id;
+    document.getElementById('editPreview').src   = img.thumbnail || img.url;
+    document.getElementById('editCaption').value = img.caption || '';
+    document.getElementById('editCategory').value = img.category || 'General';
+    openModal('editModal');
+  }
+
+  async function saveEdit() {
+    const id  = document.getElementById('editId').value;
+    const data = await apiFetch('/gallery/' + id, {
+      method: 'PUT',
+      body: JSON.stringify({ caption: document.getElementById('editCaption').value, category: document.getElementById('editCategory').value })
+    });
+    if (data?.success) {
+      showToast('Photo updated', 'success');
+      closeModal('editModal');
+      allImages = allImages.map(i => i._id === id ? data.image : i);
+      renderGallery(allImages);
+    } else showToast(data?.message || 'Update failed', 'error');
+  }
+
+  // ── Drag & Drop Upload ──────────────────────
+  function initDragDrop() {
+    const zone = document.getElementById('dropZone');
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag-over'); handleFiles(e.dataTransfer.files); });
+    document.getElementById('fileInput').addEventListener('change', e => handleFiles(e.target.files));
+  }
+
+  let filesToUpload = [];
+  function handleFiles(files) {
+    filesToUpload = [...files].filter(f => f.size <= 5 * 1024 * 1024);
+    const tooLarge = files.length - filesToUpload.length;
+    if (tooLarge > 0) showToast(`${tooLarge} file(s) exceed 5MB and were skipped`, 'error');
+    if (!filesToUpload.length) return;
+    document.getElementById('uploadForm').style.display = 'block';
+    const list = document.getElementById('uploadFileList');
+    list.innerHTML = filesToUpload.map(f => `
+      <div class="upload-file-row">
+        <i class="fa-solid fa-image" style="color:var(--gold)"></i>
+        <span class="upload-file-name">${f.name}</span>
+        <span class="upload-file-size">${(f.size/1024/1024).toFixed(2)} MB</span>
+      </div>`).join('');
+  }
+
+  function clearUpload() {
+    filesToUpload = [];
+    document.getElementById('uploadFileList').innerHTML = '';
+    document.getElementById('uploadForm').style.display = 'none';
+    document.getElementById('fileInput').value = '';
+  }
+
+  async function uploadFiles() {
+    if (!filesToUpload.length) return showToast('No files selected', 'error');
+    const btn = document.getElementById('uploadBtn');
+    btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading...';
+    const progressWrap = document.getElementById('uploadProgress');
+    const fill = document.getElementById('progressFill');
+    const pct  = document.getElementById('uploadPct');
+    progressWrap.style.display = 'block';
+
+    const formData = new FormData();
+    filesToUpload.forEach(f => formData.append('images', f));
+    formData.append('category', document.getElementById('uploadCategory').value);
+    formData.append('caption',  document.getElementById('uploadCaption').value);
+
+    try {
+      const xhr = new XMLHttpRequest();
+      xhr.upload.onprogress = e => {
+        if (e.lengthComputable) {
+          const p = Math.round(e.loaded / e.total * 100);
+          fill.style.width = p + '%';
+          pct.textContent  = p + '%';
+        }
+      };
+      xhr.onload = async () => {
+        btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Upload Now';
+        progressWrap.style.display = 'none';
+        const data = JSON.parse(xhr.responseText);
+        if (data.success) {
+          showToast(data.message, 'success');
+          clearUpload();
+          await loadGallery();
+        } else showToast(data.message || 'Upload failed', 'error');
+      };
+      xhr.onerror = () => { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Upload Now'; showToast('Upload failed', 'error'); };
+      xhr.open('POST', API + '/gallery/upload');
+      xhr.setRequestHeader('Authorization', 'Bearer ' + getToken());
+      xhr.send(formData);
+    } catch (e) {
+      btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Upload Now';
+      showToast('Upload error: ' + e.message, 'error');
+    }
+  }
+</script>
+</body>
+</html>
